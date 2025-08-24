@@ -6,11 +6,8 @@ import com.homework1.MySpringbootLab.repository.BookRepository;
 import com.homework1.MySpringbootLab.service.BookService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import com.homework1.MySpringbootLab.support.BusinessException;
-import com.homework1.MySpringbootLab.support.ErrorObject;
 import java.util.List;
 
 
@@ -42,13 +39,13 @@ public class BookController {
     }
 
     @PostMapping
-    public ResponseEntity<BookDto.BookResponse> create(@Valid @RequestBody Book req) {
+    public ResponseEntity<BookDto.BookResponse> create(@Valid @RequestBody BookDto.BookCreateRequest req) {
         return ResponseEntity.ok(this.bookService.create(req));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<BookDto.BookResponse> update(@PathVariable Long id,
-                                       @Valid @RequestBody Book req) {
+                                       @Valid @RequestBody BookDto.BookUpdateRequest req) {
         return ResponseEntity.ok(this.bookService.update(id, req));
     }
 

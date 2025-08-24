@@ -7,7 +7,6 @@ import com.homework1.MySpringbootLab.support.BusinessException;
 import com.homework1.MySpringbootLab.support.ErrorObject;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.PathVariable;
 
@@ -50,12 +49,13 @@ public class BookService {
         return bookRepository.findByAuthor(author).stream().map(BookDto.BookResponse::from).toList();
     }
 
-    public BookDto.BookResponse create(Book req){
-        Book savedBook = bookRepository.save(req);
+    public BookDto.BookResponse create(BookDto.BookCreateRequest req){
+        Book _book = req.toEntity();
+        Book savedBook = bookRepository.save(_book);
         return BookDto.BookResponse.from(savedBook);
     }
 
-    public BookDto.BookResponse update(Long id, Book req){
+    public BookDto.BookResponse update(Long id, BookDto.BookUpdateRequest req){
         return bookRepository.findById(id)
                 .map(existing -> {
                     if(req.getTitle() != null){
@@ -81,7 +81,7 @@ public class BookService {
                     if(req.getPublishDate() != null){
                         existing.setPublishDate(req.getPublishDate());
                     }
-                    
+
                     Book saved = bookRepository.save(existing);
 
                     return BookDto.BookResponse.from(saved);
