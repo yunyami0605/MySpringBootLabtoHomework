@@ -1,7 +1,9 @@
 package com.homework1.MySpringbootLab.controller;
 
+import com.homework1.MySpringbootLab.controller.dto.BookDto;
 import com.homework1.MySpringbootLab.entity.Book;
 import com.homework1.MySpringbootLab.repository.BookRepository;
+import com.homework1.MySpringbootLab.service.BookService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -17,81 +19,43 @@ import java.util.List;
 @RequestMapping("/api/books")
 public class BookController {
     private final BookRepository bookRepository;
+    private final BookService bookService;
 
     @GetMapping
-    List<Book> getAllBooks(){
-        return bookRepository.findAll();
-    }
-
-    @PostMapping
-    public ResponseEntity<Void> create(@Valid @RequestBody Book req) {
-        bookRepository.save(req);
-        return ResponseEntity.ok().build();
+    ResponseEntity<List<BookDto.BookResponse>> getAllBooks(){
+        return ResponseEntity.ok(bookService.getAllBooks());
     }
 
     @GetMapping("/{id}")
-    ResponseEntity<Book> getBookById(@PathVariable Long id){
-        return bookRepository.findById(id).map(ResponseEntity::ok).orElseThrow(() ->
-                new BusinessException(
-                        ErrorObject.builder()
-                                .message("not found book")
-                                .httpStatus(HttpStatus.valueOf(HttpStatus.NOT_FOUND.value()))
-                                .build()
-                )
-        );
+    ResponseEntity<BookDto.BookResponse> getBookById(@PathVariable Long id){
+        return ResponseEntity.ok(bookService.getBookById(id));
     }
 
     @GetMapping("/isbn/{isbn}")
-    public Book getUserByIsbn(@PathVariable String isbn) {
-        return bookRepository.findByIsbn(isbn)
-                .orElseThrow(() ->
-                        new BusinessException(
-                                ErrorObject.builder()
-                                        .message("not found book")
-                                        .httpStatus(HttpStatus.valueOf(HttpStatus.NOT_FOUND.value()))
-                                        .build()
-                        )
-                );
+    public ResponseEntity<BookDto.BookResponse> getBookByIsbn(@PathVariable String isbn) {
+        return ResponseEntity.ok(this.bookService.getBookByIsbn(isbn));
+    }
+
+    @GetMapping("/author/{author}")
+    public ResponseEntity<List<BookDto.BookResponse>> getBooksByAuthor(@PathVariable String author) {
+        return ResponseEntity.ok(this.bookService.getBooksByAuthor(author));
+    }
+
+    @PostMapping
+    public ResponseEntity<BookDto.BookResponse> create(@Valid @RequestBody Book req) {
+        return ResponseEntity.ok(this.bookService.create(req));
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Book> update(@PathVariable Long id,
+    public ResponseEntity<BookDto.BookResponse> update(@PathVariable Long id,
                                        @Valid @RequestBody Book req) {
-        return bookRepository.findById(id)
-                .map(existing -> {
-                    existing.setTitle(req.getTitle());
-                    existing.setAuthor(req.getAuthor());
-                    existing.setIsbn(req.getIsbn());
-                    existing.setPrice(req.getPrice());
-                    existing.setPublishDate(req.getPublishDate());
-                    Book saved = bookRepository.save(existing);
-
-                    return ResponseEntity.ok(saved);
-                })
-                .orElseThrow(() ->
-                        new BusinessException(
-                                ErrorObject.builder()
-                                        .message("not found book")
-                                        .httpStatus(HttpStatus.valueOf(HttpStatus.NOT_FOUND.value()))
-                                        .build()
-                        )
-                );
+        return ResponseEntity.ok(this.bookService.update(id, req));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Object> delete(@PathVariable Long id) {
-        return bookRepository.findById(id)
-                .map(b -> {
-                    bookRepository.deleteById(id);
-                    return ResponseEntity.ok().build();
-                }).orElseThrow(() ->
-                        new BusinessException(
-                                ErrorObject.builder()
-                                        .message("not found book")
-                                        .httpStatus(HttpStatus.valueOf(HttpStatus.NOT_FOUND.value()))
-                                        .build()
-                        )
-                );
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
+        bookService.deleteBook(id);
+        return ResponseEntity.noContent().build();
     }
 
 }
