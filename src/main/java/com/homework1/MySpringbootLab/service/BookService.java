@@ -2,18 +2,20 @@ package com.homework1.MySpringbootLab.service;
 
 import com.homework1.MySpringbootLab.controller.dto.BookDto;
 import com.homework1.MySpringbootLab.entity.Book;
+import com.homework1.MySpringbootLab.exception.BusinessException;
 import com.homework1.MySpringbootLab.repository.BookRepository;
-import com.homework1.MySpringbootLab.support.BusinessException;
 import com.homework1.MySpringbootLab.support.ErrorObject;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
 
 @Service
 @AllArgsConstructor
+@Transactional(readOnly = true)
 public class BookService {
 
     private final BookRepository bookRepository;
@@ -24,24 +26,14 @@ public class BookService {
 
     public BookDto.BookResponse getBookById(Long id){
         return bookRepository.findById(id).map(BookDto.BookResponse::from).orElseThrow(() ->
-                new BusinessException(
-                        ErrorObject.builder()
-                                .message("not found book")
-                                .httpStatus(HttpStatus.valueOf(HttpStatus.NOT_FOUND.value()))
-                                .build()
-                )
+                new BusinessException("not found book", HttpStatus.NOT_FOUND)
         );
     }
 
     public BookDto.BookResponse getBookByIsbn(String isbn){
         return bookRepository.findByIsbn(isbn).map(BookDto.BookResponse::from)
                 .orElseThrow(() ->
-                        new BusinessException(
-                                ErrorObject.builder()
-                                        .message("not found book")
-                                        .httpStatus(HttpStatus.valueOf(HttpStatus.NOT_FOUND.value()))
-                                        .build()
-                        )
+                        new BusinessException("not found book", HttpStatus.NOT_FOUND)
                 );
     }
 
@@ -49,12 +41,14 @@ public class BookService {
         return bookRepository.findByAuthor(author).stream().map(BookDto.BookResponse::from).toList();
     }
 
+    @Transactional
     public BookDto.BookResponse create(BookDto.BookCreateRequest req){
         Book _book = req.toEntity();
         Book savedBook = bookRepository.save(_book);
         return BookDto.BookResponse.from(savedBook);
     }
 
+    @Transactional
     public BookDto.BookResponse update(Long id, BookDto.BookUpdateRequest req){
         return bookRepository.findById(id)
                 .map(existing -> {
@@ -86,28 +80,17 @@ public class BookService {
 
                     return BookDto.BookResponse.from(saved);
                 })
-                .orElseThrow(() ->
-                        new BusinessException(
-                                ErrorObject.builder()
-                                        .message("not found book")
-                                        .httpStatus(HttpStatus.valueOf(HttpStatus.NOT_FOUND.value()))
-                                        .build()
-                        )
+                .orElseThrow(() -> new BusinessException("not found book", HttpStatus.NOT_FOUND)
                 );
     }
 
+    @Transactional
     public void deleteBook(Long id){
         bookRepository.findById(id)
                 .map(b -> {
                     bookRepository.deleteById(id);
                     return id;
-                }).orElseThrow(() ->
-                        new BusinessException(
-                                ErrorObject.builder()
-                                        .message("not found book")
-                                        .httpStatus(HttpStatus.valueOf(HttpStatus.NOT_FOUND.value()))
-                                        .build()
-                        )
+                }).orElseThrow(() -> new BusinessException("not found book", HttpStatus.NOT_FOUND)
                 );
 
     }
