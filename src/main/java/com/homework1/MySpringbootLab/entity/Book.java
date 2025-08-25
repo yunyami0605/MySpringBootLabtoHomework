@@ -32,4 +32,7 @@ public class Book {
 
     @Column(nullable = false)
     private Integer price;
+
+    @OneToOne(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)
+    private BookDetail bookDetail;
 }

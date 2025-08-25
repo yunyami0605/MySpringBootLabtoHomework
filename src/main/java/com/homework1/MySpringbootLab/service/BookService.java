@@ -4,7 +4,6 @@ import com.homework1.MySpringbootLab.controller.dto.BookDto;
 import com.homework1.MySpringbootLab.entity.Book;
 import com.homework1.MySpringbootLab.exception.BusinessException;
 import com.homework1.MySpringbootLab.repository.BookRepository;
-import com.homework1.MySpringbootLab.support.ErrorObject;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -20,36 +19,43 @@ public class BookService {
 
     private final BookRepository bookRepository;
 
-    public List<BookDto.BookResponse> getAllBooks(){
-        return bookRepository.findAll().stream().map(BookDto.BookResponse::from).toList();
+    public List<BookDto.Response> getAllBooks(){
+        return bookRepository.findAll().stream().map(BookDto.Response::fromEntity).toList();
     }
 
-    public BookDto.BookResponse getBookById(Long id){
-        return bookRepository.findById(id).map(BookDto.BookResponse::from).orElseThrow(() ->
+    public BookDto.Response getBookById(Long id){
+        return bookRepository.findById(id).map(BookDto.Response::fromEntity).orElseThrow(() ->
                 new BusinessException("not found book", HttpStatus.NOT_FOUND)
         );
     }
 
-    public BookDto.BookResponse getBookByIsbn(String isbn){
-        return bookRepository.findByIsbn(isbn).map(BookDto.BookResponse::from)
+    public BookDto.Response getBookByIsbn(String isbn){
+        return bookRepository.findByIsbn(isbn).map(BookDto.Response::fromEntity)
                 .orElseThrow(() ->
                         new BusinessException("not found book", HttpStatus.NOT_FOUND)
                 );
     }
 
-    public List<BookDto.BookResponse> getBooksByAuthor(@PathVariable String author) {
-        return bookRepository.findByAuthor(author).stream().map(BookDto.BookResponse::from).toList();
+    public List<BookDto.Response> getBooksByAuthor(@PathVariable String author) {
+        return bookRepository.findByAuthorContainingIgnoreCase(author).stream().map(BookDto.Response::fromEntity).toList();
     }
 
     @Transactional
-    public BookDto.BookResponse create(BookDto.BookCreateRequest req){
-        Book _book = req.toEntity();
+    public BookDto.Response create(BookDto.Request req){
+        Book _book = Book.builder()
+                .title(req.getTitle())
+                .author(req.getAuthor())
+                .isbn(req.getIsbn())
+                .publishDate(req.getPublishDate())
+                .price(req.getPrice())
+                .build();
+
         Book savedBook = bookRepository.save(_book);
-        return BookDto.BookResponse.from(savedBook);
+        return BookDto.Response.fromEntity(savedBook);
     }
 
     @Transactional
-    public BookDto.BookResponse update(Long id, BookDto.BookUpdateRequest req){
+    public BookDto.Response update(Long id, BookDto.Request req){
         return bookRepository.findById(id)
                 .map(existing -> {
                     if(req.getTitle() != null){
@@ -78,7 +84,7 @@ public class BookService {
 
                     Book saved = bookRepository.save(existing);
 
-                    return BookDto.BookResponse.from(saved);
+                    return BookDto.Response.fromEntity(saved);
                 })
                 .orElseThrow(() -> new BusinessException("not found book", HttpStatus.NOT_FOUND)
                 );
