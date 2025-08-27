@@ -27,10 +27,10 @@ public class Book {
     @Column(nullable = false, unique = true)
     private String isbn;
 
-    @Column(nullable = false)
+    @Column()
     private LocalDate publishDate;
 
-    @Column(nullable = false)
+    @Column()
     private Integer price;
 
     @OneToOne(mappedBy = "book", cascade = CascadeType.ALL, orphanRemoval = true)

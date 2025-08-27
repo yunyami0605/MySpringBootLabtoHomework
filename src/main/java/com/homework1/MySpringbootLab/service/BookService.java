@@ -2,8 +2,11 @@ package com.homework1.MySpringbootLab.service;
 
 import com.homework1.MySpringbootLab.controller.dto.BookDto;
 import com.homework1.MySpringbootLab.entity.Book;
+import com.homework1.MySpringbootLab.entity.BookDetail;
 import com.homework1.MySpringbootLab.exception.BusinessException;
+import com.homework1.MySpringbootLab.exception.ErrorCode;
 import com.homework1.MySpringbootLab.repository.BookRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -98,6 +101,64 @@ public class BookService {
                     return id;
                 }).orElseThrow(() -> new BusinessException("not found book", HttpStatus.NOT_FOUND)
                 );
+    }
 
+    @Transactional
+    public BookDto.Response patch(Long id, BookDto.PatchRequest request){
+        Book book = bookRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Book not found"));
+
+        if (request.getTitle() != null) book.setTitle(request.getTitle());
+        if (request.getAuthor() != null) book.setAuthor(request.getAuthor());
+
+        // ISBN 변경 시 중복 체크
+        if (request.getIsbn() != null &&
+                !request.getIsbn().equals(book.getIsbn())) {
+            if (bookRepository.existsByIsbn(request.getIsbn())) {
+                throw new BusinessException(ErrorCode.ISBN_DUPLICATE, request.getIsbn());
+            }
+            book.setIsbn(request.getIsbn());
+        }
+
+        if (request.getPrice() != null) book.setPrice(request.getPrice());
+        if (request.getPublishDate() != null) book.setPublishDate(request.getPublishDate());
+
+        // BookDetail patch도 포함 가능
+        if (request.getDetailRequest() != null) {
+            BookDetail detail = book.getBookDetail();
+            if (detail == null) {
+                throw new EntityNotFoundException("BookDetail not found for book id " + id);
+            }
+
+            BookDto.BookDetailPatchRequest detailReq = request.getDetailRequest();
+            if (detailReq.getDescription() != null) detail.setDescription(detailReq.getDescription());
+            if (detailReq.getLanguage() != null) detail.setLanguage(detailReq.getLanguage());
+            if (detailReq.getPageCount() != null) detail.setPageCount(detailReq.getPageCount());
+            if (detailReq.getPublisher() != null) detail.setPublisher(detailReq.getPublisher());
+            if (detailReq.getCoverImageUrl() != null) detail.setCoverImageUrl(detailReq.getCoverImageUrl());
+            if (detailReq.getEdition() != null) detail.setEdition(detailReq.getEdition());
+        }
+
+        return BookDto.Response.fromEntity(book);
+    }
+
+    @Transactional
+    public BookDto.Response patchDetail(Long id, BookDto.BookDetailPatchRequest req) {
+        Book book = bookRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("Book not found"));
+
+        BookDetail detail = book.getBookDetail();
+        if (detail == null) {
+            throw new EntityNotFoundException("BookDetail not found for book id: " + id);
+        }
+
+        if (req.getDescription() != null) detail.setDescription(req.getDescription());
+        if (req.getLanguage() != null) detail.setLanguage(req.getLanguage());
+        if (req.getPageCount() != null) detail.setPageCount(req.getPageCount());
+        if (req.getPublisher() != null) detail.setPublisher(req.getPublisher());
+        if (req.getCoverImageUrl() != null) detail.setCoverImageUrl(req.getCoverImageUrl());
+        if (req.getEdition() != null) detail.setEdition(req.getEdition());
+
+        return BookDto.Response.fromEntity(book);
     }
 }

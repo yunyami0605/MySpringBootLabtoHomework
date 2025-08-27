@@ -54,4 +54,14 @@ public class BookController {
         return ResponseEntity.noContent().build();
     }
 
+    @PatchMapping("/{id}")
+    public ResponseEntity<BookDto.Response> patch(@PathVariable Long id, @RequestBody BookDto.PatchRequest req){
+        return ResponseEntity.ok((this.bookService.patch(id, req)));
+    }
+
+    @PatchMapping("/{id}/detail")
+    public ResponseEntity<BookDto.Response> patch(@PathVariable Long id, @RequestBody BookDto.BookDetailPatchRequest req){
+        return ResponseEntity.ok((this.bookService.patchDetail(id, req)));
+    }
+
 }
