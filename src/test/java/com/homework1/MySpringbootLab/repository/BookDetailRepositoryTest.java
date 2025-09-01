@@ -2,8 +2,6 @@ package com.homework1.MySpringbootLab.repository;
 
 import com.homework1.MySpringbootLab.entity.Book;
 import com.homework1.MySpringbootLab.entity.BookDetail;
-import com.homework1.MySpringbootLab.repository.BookDetailRepository;
-import com.homework1.MySpringbootLab.repository.BookRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
@@ -17,7 +15,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @DataJpaTest
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-public class BookRepositoryTest {
+public class BookDetailRepositoryTest {
 
     @Autowired
     private BookRepository bookRepository;

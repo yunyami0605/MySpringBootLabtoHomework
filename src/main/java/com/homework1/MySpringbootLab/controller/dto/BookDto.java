@@ -6,10 +6,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Past;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.PositiveOrZero;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDate;
 
@@ -39,6 +36,7 @@ public class BookDto {
 
         @Valid
         private BookDetailDTO detailRequest;
+        private Long publisherId;
     }
 
     @Data
@@ -66,6 +64,7 @@ public class BookDto {
         private Integer price;
         private LocalDate publishDate;
         private BookDetailResponse detail;
+        PublisherDTO.SimpleResponse publisher;
 
         public static Response fromEntity(Book book) {
             BookDetailResponse detailResponse = book.getBookDetail() != null

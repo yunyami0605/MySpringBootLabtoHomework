@@ -8,6 +8,7 @@ import com.homework1.MySpringbootLab.exception.ErrorCode;
 import com.homework1.MySpringbootLab.repository.BookRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.List;
 
+@Slf4j
 @Service
 @AllArgsConstructor
 @Transactional(readOnly = true)
@@ -23,6 +25,7 @@ public class BookService {
     private final BookRepository bookRepository;
 
     public List<BookDto.Response> getAllBooks(){
+        log.info("here");
         return bookRepository.findAll().stream().map(BookDto.Response::fromEntity).toList();
     }
 
@@ -39,19 +42,44 @@ public class BookService {
                 );
     }
 
+    public List<BookDto.Response> getBookByIdWithPublisher(Long id){
+        return bookRepository.findByPublisherId(id).stream().map(BookDto.Response::fromEntity).toList();
+    }
+
     public List<BookDto.Response> getBooksByAuthor(@PathVariable String author) {
         return bookRepository.findByAuthorContainingIgnoreCase(author).stream().map(BookDto.Response::fromEntity).toList();
     }
 
+    public List<BookDto.Response> getBookByTitle(@PathVariable String title){
+        return bookRepository.findByTitleContainingIgnoreCase(title).stream().map(BookDto.Response::fromEntity).toList();
+    }
+
     @Transactional
     public BookDto.Response create(BookDto.Request req){
+        BookDetail bookDetail = null;
+        if(req.getDetailRequest() != null){
+            bookDetail = BookDetail.builder()
+                    .description(req.getDetailRequest().getDescription())
+                    .language(req.getDetailRequest().getLanguage())
+                    .pageCount(req.getDetailRequest().getPageCount())
+                    .publisher(req.getDetailRequest().getPublisher())
+                    .coverImageUrl(req.getDetailRequest().getCoverImageUrl())
+                    .edition(req.getDetailRequest().getEdition())
+                    .build();
+        }
+
         Book _book = Book.builder()
                 .title(req.getTitle())
                 .author(req.getAuthor())
                 .isbn(req.getIsbn())
                 .publishDate(req.getPublishDate())
                 .price(req.getPrice())
+                .bookDetail(bookDetail)
                 .build();
+
+        if (bookDetail != null) {
+            bookDetail.setBook(_book);
+        }
 
         Book savedBook = bookRepository.save(_book);
         return BookDto.Response.fromEntity(savedBook);
