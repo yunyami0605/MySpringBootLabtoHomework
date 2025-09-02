@@ -1,5 +1,6 @@
 package com.homework1.MySpringbootLab.controller.dto;
 
+import com.homework1.MySpringbootLab.entity.Book;
 import com.homework1.MySpringbootLab.entity.Publisher;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.PastOrPresent;
@@ -38,18 +39,19 @@ public class PublisherDTO {
         private LocalDate establishedDate;
         private String address;
         private Long bookCount;
-        private List<BookDto.Response> books;
+        private List<BookDto.ByPublisher> books;
 
         public static Response fromEntity(Publisher publisher) {
+            List<Book> _books = publisher.getBooks();
             return Response.builder()
                     .id(publisher.getId())
                     .name(publisher.getName())
                     .establishedDate(publisher.getEstablishedDate())
                     .address(publisher.getAddress())
-                    .bookCount((long) publisher.getBooks().size())
-                    .books(publisher.getBooks().stream()
-                            .map(BookDto.Response::fromEntity)
-                            .collect(Collectors.toList()))
+                    .bookCount(_books != null ?(long) _books.size() : 0)
+                    .books(_books != null ? _books.stream()
+                            .map(BookDto.ByPublisher::fromEntity)
+                            .collect(Collectors.toList()) : List.of())
                     .build();
         }
     }
@@ -63,7 +65,7 @@ public class PublisherDTO {
         private String name;
         private LocalDate establishedDate;
         private String address;
-        private Long bookCount;
+        private int bookCount;
 
         public static SimpleResponse fromEntity(Publisher publisher) {
             return SimpleResponse.builder()
@@ -74,7 +76,8 @@ public class PublisherDTO {
                     .build();
         }
 
-        public static SimpleResponse fromEntityWithCount(Publisher publisher, Long bookCount) {
+        public static SimpleResponse fromEntityWithCount(Publisher publisher) {
+            int bookCount = publisher.getBooks().size();
             return SimpleResponse.builder()
                     .id(publisher.getId())
                     .name(publisher.getName())

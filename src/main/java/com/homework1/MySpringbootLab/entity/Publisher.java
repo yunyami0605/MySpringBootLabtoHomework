@@ -12,7 +12,8 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Entity(name = "publishers")
+@Entity
+@Table(name = "publishers")
 public class Publisher {
     @Id
     @GeneratedValue(strategy =  GenerationType.IDENTITY)

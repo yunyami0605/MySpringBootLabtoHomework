@@ -3,9 +3,11 @@ package com.homework1.MySpringbootLab.service;
 import com.homework1.MySpringbootLab.controller.dto.BookDto;
 import com.homework1.MySpringbootLab.entity.Book;
 import com.homework1.MySpringbootLab.entity.BookDetail;
+import com.homework1.MySpringbootLab.entity.Publisher;
 import com.homework1.MySpringbootLab.exception.BusinessException;
 import com.homework1.MySpringbootLab.exception.ErrorCode;
 import com.homework1.MySpringbootLab.repository.BookRepository;
+import com.homework1.MySpringbootLab.repository.PublisherRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -23,10 +25,10 @@ import java.util.List;
 public class BookService {
 
     private final BookRepository bookRepository;
+    private final PublisherRepository publisherRepository;
 
-    public List<BookDto.Response> getAllBooks(){
-        log.info("here");
-        return bookRepository.findAll().stream().map(BookDto.Response::fromEntity).toList();
+    public List<BookDto.BookListResponse> getAllBooks(){
+        return bookRepository.findAll().stream().map(BookDto.BookListResponse::fromEntity).toList();
     }
 
     public BookDto.Response getBookById(Long id){
@@ -56,6 +58,13 @@ public class BookService {
 
     @Transactional
     public BookDto.Response create(BookDto.Request req){
+        boolean existIsbn = bookRepository.existsByIsbn(req.getIsbn());
+
+        if(existIsbn) throw new BusinessException(ErrorCode.ISBN_DUPLICATE, req.getIsbn());
+
+//        Publisher publisher = publisherRepository.findById(req.getPublisherId())
+//                .orElseThrow(() -> new BusinessException("Publisher not found", HttpStatus.NOT_FOUND));
+
         BookDetail bookDetail = null;
         if(req.getDetailRequest() != null){
             bookDetail = BookDetail.builder()
@@ -75,6 +84,7 @@ public class BookService {
                 .publishDate(req.getPublishDate())
                 .price(req.getPrice())
                 .bookDetail(bookDetail)
+//                .publisher(publisher)
                 .build();
 
         if (bookDetail != null) {

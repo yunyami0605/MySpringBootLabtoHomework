@@ -6,12 +6,13 @@ import com.homework1.MySpringbootLab.repository.PublisherRepository;
 import com.homework1.MySpringbootLab.support.BusinessException;
 import com.homework1.MySpringbootLab.support.ErrorCode;
 import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
+@Slf4j
 @Transactional
 @Service
 @AllArgsConstructor
@@ -20,22 +21,26 @@ public class PublishersService {
 
     // 모든 출판사를 조회하며, 각 출판사의 도서 수를 포함합니다.
     public List<PublisherDTO.SimpleResponse> getAllPublishers(){
-        return this.publisherRepository.findAll().stream().map(PublisherDTO.SimpleResponse::fromEntity).toList();
+        return this.publisherRepository.findAll().stream().map(PublisherDTO.SimpleResponse::fromEntityWithCount).toList();
     }
 
     // ID로 특정 출판사를 조회하며, 해당 출판사의 모든 도서 정보를 포함합니다.
     public PublisherDTO.Response getPublisherById(Long id){
-        return this.publisherRepository.findByIdWithBooks(id).map(PublisherDTO.Response::fromEntity).orElseThrow(() -> new BusinessException(ErrorCode.RESOURCE_NOT_FOUND));
+        return this.publisherRepository.findByIdWithBooks(id).map(PublisherDTO.Response::fromEntity).orElseThrow(() -> new BusinessException(ErrorCode.RESOURCE_NOT_FOUND,"publisher", "id", id));
     }
 
     // 이름으로 특정 출판사를 조회합니다.
     public PublisherDTO.Response getPublisherByName(String name){
-        return this.publisherRepository.findByName(name).map(PublisherDTO.Response::fromEntity).orElseThrow(() -> new BusinessException(ErrorCode.RESOURCE_NOT_FOUND));
+        return this.publisherRepository.findByName(name).map(PublisherDTO.Response::fromEntity).orElseThrow(() -> new BusinessException(ErrorCode.RESOURCE_NOT_FOUND, "publisher", "name", name));
     }
 
     // 새로운 출판사를 생성합니다. 이름 중복을 검증합니다.
     @Transactional
     public PublisherDTO.Response createPublisher(PublisherDTO.Request request){
+
+        boolean existPub = publisherRepository.existsByName(request.getName());
+        if(existPub) throw new BusinessException(ErrorCode.RESOURCE_DUPLICATE, "publisher", "name", request.getName());
+
         Publisher _pub = Publisher.builder()
                 .name(request.getName())
                 .establishedDate(request.getEstablishedDate())
@@ -64,15 +69,23 @@ public class PublishersService {
 
             Publisher savedPub = this.publisherRepository.save(existing);
             return PublisherDTO.Response.fromEntity(savedPub);
-        }).orElseThrow(() -> new BusinessException(ErrorCode.RESOURCE_NOT_FOUND));
+        }).orElseThrow(() -> new BusinessException(ErrorCode.RESOURCE_NOT_FOUND,"publisher", "id", id));
     }
 
     // 출판사를 삭제합니다. 해당 출판사에 도서가 있는 경우 삭제를 거부합니다.
     @Transactional
     public void deletePublisher(Long id){
         publisherRepository.findById(id).map((pub) -> {
-            publisherRepository.deleteById(id);
+            int size = pub.getBooks().size();
+
+            log.info("size: {}", size);
+
+            if(size > 1){
+                throw new BusinessException(ErrorCode.PUBLISHER_HAS_BOOKS, id, size);
+            }else{
+                publisherRepository.deleteById(id);
+            }
             return id;
-        }).orElseThrow(() -> new BusinessException(ErrorCode.RESOURCE_NOT_FOUND));
+        }).orElseThrow(() -> new BusinessException(ErrorCode.RESOURCE_NOT_FOUND, "publisher", "id", id));
     }
 }

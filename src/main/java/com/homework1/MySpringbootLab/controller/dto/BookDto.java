@@ -1,6 +1,7 @@
 package com.homework1.MySpringbootLab.controller.dto;
 
 import com.homework1.MySpringbootLab.entity.Book;
+import com.homework1.MySpringbootLab.entity.Publisher;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Past;
@@ -67,13 +68,17 @@ public class BookDto {
         PublisherDTO.SimpleResponse publisher;
 
         public static Response fromEntity(Book book) {
+
+            Publisher _publisher = book.getPublisher();
+            PublisherDTO.SimpleResponse publisherResponse = book.getPublisher() != null ?
+                    PublisherDTO.SimpleResponse.fromEntity(_publisher) : null;
+
             BookDetailResponse detailResponse = book.getBookDetail() != null
                     ? BookDetailResponse.builder()
                     .id(book.getBookDetail().getId())
                     .description(book.getBookDetail().getDescription())
                     .language(book.getBookDetail().getLanguage())
                     .pageCount(book.getBookDetail().getPageCount())
-                    .publisher(book.getBookDetail().getPublisher())
                     .coverImageUrl(book.getBookDetail().getCoverImageUrl())
                     .edition(book.getBookDetail().getEdition())
                     .build()
@@ -86,6 +91,51 @@ public class BookDto {
                     .isbn(book.getIsbn())
                     .price(book.getPrice())
                     .publishDate(book.getPublishDate())
+                    .publisher(publisherResponse)
+                    .detail(detailResponse)
+                    .build();
+        }
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class BookListResponse {
+        private Long id;
+        private String title;
+        private String author;
+        private String isbn;
+        private Integer price;
+        private LocalDate publishDate;
+        private BookDetailResponse detail;
+        PublisherDTO.SimpleResponse publisher;
+
+        public static BookListResponse fromEntity(Book book) {
+            Publisher _publisher = book.getPublisher();
+            PublisherDTO.SimpleResponse publisherResponse = book.getPublisher() != null ?
+                    PublisherDTO.SimpleResponse.fromEntity(_publisher) : null;
+
+            BookDetailResponse detailResponse = book.getBookDetail() != null
+                    ? BookDetailResponse.builder()
+                    .id(book.getBookDetail().getId())
+                    .description(book.getBookDetail().getDescription())
+                    .language(book.getBookDetail().getLanguage())
+                    .pageCount(book.getBookDetail().getPageCount())
+                    .publisher(book.getBookDetail().getPublisher())
+                    .coverImageUrl(book.getBookDetail().getCoverImageUrl())
+                    .edition(book.getBookDetail().getEdition())
+                    .build()
+                    : null;
+
+            return BookListResponse.builder()
+                    .id(book.getId())
+                    .title(book.getTitle())
+                    .author(book.getAuthor())
+                    .isbn(book.getIsbn())
+                    .price(book.getPrice())
+                    .publishDate(book.getPublishDate())
+                    .publisher(publisherResponse)
                     .detail(detailResponse)
                     .build();
         }
@@ -130,5 +180,25 @@ public class BookDto {
         private String publisher;
         private String coverImageUrl;
         private String edition;
+    }
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class ByPublisher {
+        private Long id;
+        private String title;
+        private String author;
+        private String isbn;
+
+        public static ByPublisher fromEntity(Book book) {
+            return ByPublisher.builder()
+                    .id(book.getId())
+                    .title(book.getTitle())
+                    .author(book.getAuthor())
+                    .isbn(book.getIsbn())
+                    .build();
+        }
     }
 }

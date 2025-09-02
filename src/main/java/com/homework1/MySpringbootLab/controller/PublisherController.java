@@ -41,7 +41,6 @@ public class PublisherController {
     // 1.4 출판사별 도서 목록 조회
     @GetMapping("/{id}/books")
     ResponseEntity<List<BookDto.Response>> getBookPerPublisher(@PathVariable Long id){
-//        ResponseEntity<BookDto.Response> getBookPerPublisher(@PathVariable Long id){
         return ResponseEntity.ok(this.bookService.getBookByIdWithPublisher(id));
     }
 

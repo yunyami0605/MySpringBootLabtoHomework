@@ -17,7 +17,7 @@ public class BookDetailController {
 
     // 2.1 모든 도서 조회
     @GetMapping
-    ResponseEntity<List<BookDto.Response>> getAllBooks(){
+    ResponseEntity<List<BookDto.BookListResponse>> getAllBooks(){
         return ResponseEntity.ok(bookService.getAllBooks());
     }
 
@@ -40,7 +40,8 @@ public class BookDetailController {
     }
 
     // 2.5 제목으로 도서 검색
-    public ResponseEntity<List<BookDto.Response>> getBookByTitle(@PathVariable String title){
+    @GetMapping("/search/title")
+    public ResponseEntity<List<BookDto.Response>> getBookByTitle(@RequestParam String title){
         return ResponseEntity.ok(bookService.getBookByTitle(title));
     }
 
